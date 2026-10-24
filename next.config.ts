@@ -70,6 +70,22 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   /**
+   * Cap build-time worker parallelism.
+   *
+   * Next.js sizes its "Collecting page data" worker pool off the
+   * host's reported CPU count, not the container's actual thread
+   * quota. On Hostinger's constrained build containers that reported
+   * count is way higher than what the container is allowed to spawn,
+   * so Next tried to fork 63 workers, the OS refused ("OS can't spawn
+   * worker thread: Resource temporarily unavailable (os error 11)"),
+   * and the resulting Rust panic aborted the whole build (SIGABRT).
+   * Forcing a low, fixed worker count avoids hitting that ceiling.
+   */
+  experimental: {
+    cpus: 2,
+  },
+
+  /**
    * Cross-origin dev access (Next.js 16).
    *
    * Next 16 blocks requests to dev-only resources (`/_next/*` internals,
